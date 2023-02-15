@@ -3,19 +3,21 @@ from sentence_transformers import SentenceTransformer
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 SERVER_URL = "http://luton:9200"
-INDEX_NAME = "products"
+# INDEX_NAME = "products"
+INDEX_NAME = "shopee_products"
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 
-def normalize_bm25_formula(score):
-    return score / (score + 4.929)
+def normalize_bm25_formula(score, max_score):
+    return score / max_score
 
 
 def normalize_bm25(bm_results):
     hits = (bm_results["hits"]["hits"])
+    max_score = bm_results["hits"]["max_score"]
     for hit in hits:
-        hit["_score"] = normalize_bm25_formula(hit["_score"])
+        hit["_score"] = normalize_bm25_formula(hit["_score"], max_score)
     bm_results["hits"]["max_score"] = hits[0]["_score"]
     bm_results["hits"]["hits"] = hits
     return bm_results
